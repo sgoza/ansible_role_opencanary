@@ -1,0 +1,68 @@
+---
+
+- name: Ensure group
+  group:
+    name: opencanary
+    system: yes
+
+- name: Ensure user
+  user:
+    name: opencanary
+    comment: opencanary service user
+    system: yes
+    group: opencanary
+    home: /opt/opencanary
+
+- name: Add 'opencanry' user to sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: '^opencanary'
+    line: 'opencanary ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Ensure packages
+  package:
+    name: "{{ item }}"
+  loop:
+    - python3-dev
+    - python3-pip
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - libpcap-dev
+
+- name: Ensure pip packages
+  pip:
+    name: "{{ item }}"
+  loop:
+    - opencanary
+    - scapy
+    - pcapy
+    - rdpy
+
+- name: Ensure opencanary configuration
+  copy:
+    src: opencanary.conf
+    dest: /opt/opencanary/opencanary.conf
+
+- name: Ensure log dir
+  file:
+    state: directory
+    name: /var/log/opencanary
+
+- name: Ensure logrotate configuration
+  copy:
+    src: opencanary.logrotate
+    dest: /etc/logrotate.d/opencanary
+
+- name: Ensure systemd service configuration
+  copy:
+    src: opencanary.service
+    dest: /etc/systemd/system/opencanary.service
+
+- name: Ensure systemd opencanary.service is started and enabled at boot
+  systemd:
+    name: opencanary
+    state: started
+    enabled: yes
+    daemon_reload: yes

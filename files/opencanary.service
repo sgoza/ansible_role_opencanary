@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenCanary honeypot daemons
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/opencanaryd --dev
+ExecStop=/usr/local/bin/opencanaryd --stop
+User=opencanary
+Group=opencanary
+PIDFile=/run/opencanary.pid
+WorkingDirectory=/opt/opencanary
+
+[Install]
+WantedBy=multi.user.target
